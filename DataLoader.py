@@ -85,20 +85,6 @@ class DataTransformer(object):
                                 print("Caught bad address: " + address)
                             else:
                                 clean_address_string_list.append(', '.join(comma_split_address[start_substring_index:]))
-
-                        # clean_address_string_list.append(
-                        #     DataTransformer.retrieve_substring_with_regex(comma_split_address,
-                        #                                                   start_substring_index,
-                        #                                                   True,
-                        #                                                   ","))
-
-                        continue
-                        # current_work_string = comma_split_address[start_substring_index]
-                        # comma_index = current_work_string.index(',')
-                        # current_work_string = current_work_string[comma_index + 1:]
-                        # comma_split_address[start_substring_index] = current_work_string
-                        # clean_address_string_list.append(
-                        #     ', '.join(comma_split_address[start_substring_index:]).strip().rstrip('.'))
             # If no dentistry at this point, remove Longitute xyz text preceding a dash
             elif '-' in address.split(",")[0] and ',' in address:
                 clean_address_string_list.append((address.split("-", 1)[1]).strip().rstrip('.'))
