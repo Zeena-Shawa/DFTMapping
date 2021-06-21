@@ -38,31 +38,32 @@ class DataTransformer(object):
     @staticmethod
     def transform_addresses(addresses):
         clean_address_string_list = []
-        postcode_pattern = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})"
-
+        postcode_pattern = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1," \
+                           "2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\s?[0-9][A-Za-z]{2})"
         for address in addresses:
             # Messy, inconsistent data rows
-            if len(re.findall(postcode_pattern, address)) > 1:
-                postcodes = re.findall(postcode_pattern, address)
-                if '&' in address:
-                    split_address = address.split("&")
-                    # todo check postcode result and fix to return 'normal' postcode, use to remove everything after postcode2
-                    print(postcodes[0])
-                    print(postcodes[1])
-                    second_postcode_index = address.find(postcodes[1])
-                    split_address[1] = split_address[1][:second_postcode_index]
-                    print(split_address)
-                continue
-
-            address = re.sub(',\\s+[A-Z\\d\\s]{3,}$', '', address)
+            # link in address
             if 'https://' in address:
                 address_truncated = re.sub('\\shttps.*$', '', address)
                 clean_address_string_list.append(address_truncated.split(":", 1)[1].strip().rstrip('.'))
+            # 2 postcodes
+            elif len(re.findall(postcode_pattern, address)) > 1:
+                postcodes = re.findall(postcode_pattern, address)
+                if 'and' in address:
+                    address = re.sub('and', '&', address)
+                # Postcodes example
+                # [('', 'EN3 5PT', 'EN3', '', 'EN3', 'EN3', '', '', ''), ('', 'N7 0BT', 'N7', 'N7', '', '', '', '', '')]
+                second_postcode_index = address.find(postcodes[1][1]) + len(postcodes[1][1])
+                clean_address_string_list.append('#' + address[:second_postcode_index])
+                continue
             # todo check again
+            # special case with following text
             elif 'This post will be split across practice and community' in address:
                 clean_address_string_list.append(DataTransformer.clean_split_practice(address).rstrip('.'))
+            # N/A text
             elif 'N/A' in address:
                 clean_address_string_list.append('')
+            # for the rest of the cases, check for Dentistry/clinic/Practice in string (to skip name of DR/MS/MR)
             elif DataTransformer.check_dent_exists_in_substring(address):
                 if ',' not in address:
                     # TODO check if spaces between words (capitals) is needed e.g. Billingshurst Dental Practice114 High StreetBillingshurstRH14 9QS
@@ -73,27 +74,42 @@ class DataTransformer(object):
                     start_substring_index = [comma_split_address.index(i) for i in comma_split_address if
                                              "DENT" in i or "PRACTICE" in i or "SMIL" in i][0]
                     if '-' in comma_split_address[start_substring_index]:
-                        current_work_string = comma_split_address[start_substring_index]
-                        dash_index = current_work_string.index('-')
-                        current_work_string = current_work_string[dash_index + 1:]
-                        comma_split_address[start_substring_index] = current_work_string
                         clean_address_string_list.append(
-                            ', '.join(comma_split_address[start_substring_index:]).strip().rstrip('.'))
+                            DataTransformer.retrieve_substring_with_regex(comma_split_address,
+                                                                          start_substring_index,
+                                                                          True,
+                                                                          "-"))
                     elif start_substring_index > 0:
-                        current_work_string = comma_split_address[start_substring_index]
-                        comma_index = current_work_string.index(',')
-                        current_work_string = current_work_string[comma_index + 1:]
-                        comma_split_address[start_substring_index] = current_work_string
-                        clean_address_string_list.append(
-                            ', '.join(comma_split_address[start_substring_index:]).strip().rstrip('.'))
+                        for string in comma_split_address:
+                            if 'WWW' in string:
+                                print("Caught bad address: " + address)
+                            else:
+                                clean_address_string_list.append(', '.join(comma_split_address[start_substring_index:]))
 
+                        # clean_address_string_list.append(
+                        #     DataTransformer.retrieve_substring_with_regex(comma_split_address,
+                        #                                                   start_substring_index,
+                        #                                                   True,
+                        #                                                   ","))
+
+                        continue
+                        # current_work_string = comma_split_address[start_substring_index]
+                        # comma_index = current_work_string.index(',')
+                        # current_work_string = current_work_string[comma_index + 1:]
+                        # comma_split_address[start_substring_index] = current_work_string
+                        # clean_address_string_list.append(
+                        #     ', '.join(comma_split_address[start_substring_index:]).strip().rstrip('.'))
+            # If no dentistry at this point, remove Longitute xyz text preceding a dash
             elif '-' in address.split(",")[0] and ',' in address:
                 clean_address_string_list.append((address.split("-", 1)[1]).strip().rstrip('.'))
+            # Remaining cases might contain excess text below
             elif 'HEE Thames Valley and Wessex' in address:
                 clean_address_string_list.append(DataTransformer.truncate_hee_thames(address).rstrip('.'))
             else:
                 clean_address_string_list.append(address)
 
+        print(len(clean_address_string_list))
+        print(clean_address_string_list)
         return clean_address_string_list
 
     @staticmethod
@@ -118,3 +134,12 @@ class DataTransformer(object):
         if substring in address:
             return re.sub('-\\s+' + substring, '', address)
         return address
+
+    @staticmethod
+    def retrieve_substring_with_regex(comma_split_address, start_substring_index, is_substring_after_index, index_char):
+        current_work_string = comma_split_address[start_substring_index]
+        dash_index = current_work_string.index(index_char)
+        if is_substring_after_index:
+            current_work_string = current_work_string[dash_index + 1:]
+        comma_split_address[start_substring_index] = current_work_string
+        return ', '.join(comma_split_address[start_substring_index:]).strip().rstrip('.')
