@@ -47,8 +47,17 @@ class DataTransformer(object):
             elif 'N/A' in address:
                 clean_address_list.append('')
             else:
-                print(address)
-                clean_address_list.append(address)
+                # run to check names
+                #clean_address_list.append(address)
+                #print(address)
+                if 'Dent' or 'Clinic' or 'Practice' in address:
+                    clean_address_list.append(address)
+                elif '-' in address:
+                    clean_address_list.append(address.split("-", 1)[1])
+                else:
+                    clean_address_list.append(address.split(",", 1)[1])
+
+
 
         return clean_address_list
 
