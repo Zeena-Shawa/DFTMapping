@@ -6,13 +6,14 @@ import numpy as np
 import pandas as pd
 
 # load in data
-data = pd.read_csv('D:\PyCharm\DFTMapping\data\Preferences.csv')
+data = pd.read_csv('C:\Users\User\PycharmProjects\DFTMapping')
 print(data['Description'])
 
 # def MappingInfo(address, ):
 
 # Determine whether address column is correctly formatted version or not
-for row in data.row :
+for row in data.row:
+    print(data.iloc[row]['Description'])
     if ':' in data.iloc[row]['Description'] :
         print(True)
 
