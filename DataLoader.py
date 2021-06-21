@@ -38,10 +38,22 @@ class DataTransformer(object):
     @staticmethod
     def transform_addresses(addresses):
         clean_address_string_list = []
-        print(len(addresses))
+        postcode_pattern = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})"
+
         for address in addresses:
             # Messy, inconsistent data rows
-            # TODO check double post codes
+            if len(re.findall(postcode_pattern, address)) > 1:
+                postcodes = re.findall(postcode_pattern, address)
+                if '&' in address:
+                    split_address = address.split("&")
+                    # todo check postcode result and fix to return 'normal' postcode, use to remove everything after postcode2
+                    print(postcodes[0])
+                    print(postcodes[1])
+                    second_postcode_index = address.find(postcodes[1])
+                    split_address[1] = split_address[1][:second_postcode_index]
+                    print(split_address)
+                continue
+
             address = re.sub(',\\s+[A-Z\\d\\s]{3,}$', '', address)
             if 'https://' in address:
                 address_truncated = re.sub('\\shttps.*$', '', address)
