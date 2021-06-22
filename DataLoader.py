@@ -125,8 +125,7 @@ class DataTransformer(object):
         start_substring_index = [comma_split_address.index(i) for i in comma_split_address if
                                  "DENT" in i or "PRACTICE" in i or "SMIL" in i][0]
         # TODO: tried to do below with "PRACTICE" and "SMIL" too, just in case, but wouldn't work
-        if '-' in comma_split_address[start_substring_index] \
-                and "DENT" not in comma_split_address[start_substring_index]:
+        if '-' in comma_split_address[start_substring_index]:
             clean_address_string_list.append(
                 DataTransformer.retrieve_substring_with_regex(comma_split_address,
                                                               start_substring_index,
