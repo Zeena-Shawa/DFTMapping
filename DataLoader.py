@@ -38,6 +38,7 @@ class DataTransformer(object):
     @staticmethod
     def transform_addresses(addresses):
         print(len(addresses))
+        #print(addresses)
         clean_address_string_list = []
         postcode_pattern = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1," \
                            "2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\s?[0-9][A-Za-z]{2})"
@@ -60,7 +61,7 @@ class DataTransformer(object):
             # todo check again
             # special case with following text
             elif 'This post will be split across practice and community' in address:
-                clean_address_string_list.append(DataTransformer.clean_split_practice(address).rstrip('.'))
+                clean_address_string_list.append(DataTransformer.clean_split_practice(address).strip().rstrip('.'))
             # N/A text
             elif 'N/A' in address:
                 clean_address_string_list.append('')
@@ -74,36 +75,36 @@ class DataTransformer(object):
                     # Always for first result in list
                     start_substring_index = [comma_split_address.index(i) for i in comma_split_address if
                                              "DENT" in i or "PRACTICE" in i or "SMIL" in i][0]
-                    if '-' in comma_split_address[start_substring_index]:
+                    # TODO: tried to do below with "PRACTICE" and "SMIL" too, just in case, but wouldn't work
+                    if '-' in comma_split_address[start_substring_index] and "DENT" not in comma_split_address[start_substring_index]:
                         clean_address_string_list.append(
                             DataTransformer.retrieve_substring_with_regex(comma_split_address,
                                                                           start_substring_index,
                                                                           True,
                                                                           "-"))
                     elif start_substring_index > 0:
-                        #print(address)
                         # address is always in last element, so check if last element has it
                         if 'WWW' in comma_split_address[-1]:
-                            print("Caught bad address: " + address)
                             # all addresses caught have Title Name - address, website
                             # removing website from the end
                             address_truncated = re.sub(', www.*$', '', address)
                             # split at the first dask, and take the 2nd part of the string, i.e. address
                             clean_address_string_list.append(address_truncated.split("-", 1)[1].strip().rstrip('.'))
-                            print("Fixed bad address: " + address_truncated.split("-", 1)[1].strip().rstrip('.'))
                         else:
                             # TODO (Jason) : I think the mistake is here, as this line below would have added the
                             #  address as many times as there are 'string' terms in that address
-                            clean_address_string_list.append(', '.join(comma_split_address[start_substring_index:]))
+                            clean_address_string_list.append((', '.join(comma_split_address[start_substring_index:])).strip().rstrip('.'))
+                    else:
+                        clean_address_string_list.append((', '.join(comma_split_address[start_substring_index:])).strip().rstrip('.'))
             # If no dentistry at this point, remove Longitute xyz text preceding a dash
             elif '-' in address.split(",")[0] and ',' in address:
                 clean_address_string_list.append((address.split("-", 1)[1]).strip().rstrip('.'))
             # Remaining cases might contain excess text below
             elif 'HEE Thames Valley and Wessex' in address:
-                clean_address_string_list.append(DataTransformer.truncate_hee_thames(address).rstrip('.'))
+                clean_address_string_list.append(DataTransformer.truncate_hee_thames(address).strip().rstrip('.'))
             else:
                 # print(address)
-                clean_address_string_list.append(address)
+                clean_address_string_list.append(address.strip().rstrip('.'))
 
         print(len(clean_address_string_list))
         print(clean_address_string_list)
