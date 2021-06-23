@@ -6,7 +6,6 @@ clean_address_string_list = []
 
 
 def transform_addresses(addresses):
-    print(len(addresses))
     clean_address_string_list.clear()
     # Messy, inconsistent data rows
     for address in addresses:
@@ -39,8 +38,6 @@ def transform_addresses(addresses):
         else:
             clean_address_string_list.append(address.strip().rstrip('.'))
 
-    print(len(clean_address_string_list))
-    print(clean_address_string_list)
     return clean_address_string_list
 
 
