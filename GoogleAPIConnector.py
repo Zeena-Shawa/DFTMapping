@@ -1,4 +1,3 @@
-import sys
 from configparser import SafeConfigParser
 import googlemaps
 
@@ -24,7 +23,6 @@ class GoogleAPIHttpClient(object):
         print(candidates_dict)
         return self.gmaps.place(candidates_dict['candidates'][0]['place_id'])
 
-    # TODO add special hashtag case where double address
     def get_address_info(self, address_list):
         address_uuid_list = []
         row_split = []
@@ -49,6 +47,7 @@ class GoogleAPIHttpClient(object):
         print(len(address_uuid_list))
         row_count = 0
         for candidate_list in address_uuid_list:
+
             print(candidate_list['candidates'])
             if candidate_list == 'N/A':
                 address_list_details.append("N/A")
@@ -60,7 +59,12 @@ class GoogleAPIHttpClient(object):
                 print(f"Error, found candidate list with 0 results at row: {row_count}")
                 address_list_details.append("NULL_CANDIDATES")
                 continue
+
+            #row split contains row count
             address_list_details.append(self.gmaps.place(candidate_list['candidates'][0]['place_id']))
+            #address_2 = self.gmaps.place(candidate_list['candidates'][0]['place_id'])
+            #address_1 = address_list_details[len(address_list_details)]
+
             row_count += 1
         print(len(address_list_details))
         return address_list_details

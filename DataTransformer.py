@@ -97,6 +97,7 @@ def add_comma_addresses_to_list(address):
                                       start_substring_index,
                                       True,
                                       "-")
+    # TODO recheck else
     else:
         # address is always in last element, so check if last element has it and remove
         if 'WWW' in comma_split_address[-1] and start_substring_index > 0:

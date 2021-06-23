@@ -29,4 +29,4 @@ if __name__ == "__main__":
     for address_info in address_info_list:
         print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
         print(address_info['result']['name'] + ' amount of reviews: ' + str(address_info['result']["user_ratings_total"]))
-    print(address_info_list[0])
+    print(address_info_list[5])
