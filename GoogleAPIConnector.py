@@ -27,19 +27,27 @@ class GoogleAPIHttpClient(object):
     # TODO add special hashtag case where double address
     def get_address_info(self, address_list):
         address_uuid_list = []
+        row_split = []
+        row_count = 1
         for address in address_list:
             print(address)
             if address == '':
                 address_uuid_list.append('N/A')
                 continue
+            elif str(address).startswith("#"):
+                addresses_split = str(address).split("&")
+                for split_address in addresses_split:
+                    address_uuid_list.append(split_address)
+                    row_split.append(row_count)
             address_uuid_list.append(self.gmaps.find_place(address, 'textquery'))
-        return self.find_address_uuid_from_list(address_uuid_list)
+            row_count += 1
+        return self.find_address_uuid_from_list(address_uuid_list, row_split)
 
-    # TODO check for bad candidate list result, continue at failure and print error
-    def find_address_uuid_from_list(self, address_uuid_list):
+    # TODO merge row_split into one result back
+    def find_address_uuid_from_list(self, address_uuid_list, row_split):
         address_list_details = []
         print(len(address_uuid_list))
-        row = 0
+        row_count = 0
         for candidate_list in address_uuid_list:
             print(candidate_list['candidates'])
             if candidate_list == 'N/A':
@@ -47,12 +55,12 @@ class GoogleAPIHttpClient(object):
                 continue
             if len(candidate_list['candidates']) > 1:
                 print(f"Warning, found candidate list with more than 1 result: {candidate_list}, "
-                      f"using first result for row: {row}")
+                      f"using first result for row: {row_count}")
             elif len(candidate_list['candidates']) == 0:
-                print(f"Error, found candidate list with 0 results at row: {row}")
+                print(f"Error, found candidate list with 0 results at row: {row_count}")
                 address_list_details.append("NULL_CANDIDATES")
                 continue
             address_list_details.append(self.gmaps.place(candidate_list['candidates'][0]['place_id']))
-            row += 1
+            row_count += 1
         print(len(address_list_details))
         return address_list_details
