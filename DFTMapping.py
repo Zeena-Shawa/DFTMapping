@@ -25,4 +25,4 @@ if __name__ == "__main__":
     addresses = data_loader.get_addresses()
     client = GoogleAPIHttpClient()
     client.setup_places_api()
-    #client.send_dummy_test('CavendishDentalCare0x3BChesterfield0x2CDerbyshire')# unicode(s, "utf-8")
+    print(client.send_dummy_test('CavendishDentalCare Chesterfield Derbyshire'))
