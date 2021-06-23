@@ -3,6 +3,7 @@
 
 # how to add instance of package to pycharm: https://stackoverflow.com/questions/35623776/import-numpy-on-pycharm
 from DataLoader import CsvDao
+from GoogleAPIConnector import GoogleAPIHttpClient
 
 # def MappingInfo(address, ):
 
@@ -22,3 +23,6 @@ from DataLoader import CsvDao
 if __name__ == "__main__":
     data_loader = CsvDao("data\Preferences.csv")
     addresses = data_loader.get_addresses()
+    client = GoogleAPIHttpClient()
+    client.setup_places_api()
+    #client.send_dummy_test('CavendishDentalCare0x3BChesterfield0x2CDerbyshire')# unicode(s, "utf-8")
