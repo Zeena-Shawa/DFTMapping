@@ -27,6 +27,12 @@ if __name__ == "__main__":
     # print(client.send_dummy_test('CavendishDentalCare Chesterfield Derbyshire'))
     address_info_list = client.get_address_info(addresses)
     for address_info in address_info_list:
-        print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
-        print(address_info['result']['name'] + ' amount of reviews: ' + str(address_info['result']["user_ratings_total"]))
-    print(address_info_list[5])
+        try:
+            print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
+            print(address_info['result']['name'] + ' amount of reviews: ' + str(
+                address_info['result']["user_ratings_total"]))
+        except:
+            if 'N/A' in address_info:
+                print("nfrvinfen")
+            else:
+                print("no rating")
