@@ -1,6 +1,7 @@
 # DFTMapping Script
 # Authors: Zeena Shawa, Jason Sklavenitis
-
+# TODO: My takeaways: don't just choose any random method
+#  don't copy paste argument names thinking they are consistent
 # how to add instance of package to pycharm: https://stackoverflow.com/questions/35623776/import-numpy-on-pycharm
 from DataLoader import CsvDao
 from GoogleAPIConnector import GoogleAPIHttpClient
@@ -26,13 +27,46 @@ if __name__ == "__main__":
     client.setup_places_api()
     # print(client.send_dummy_test('CavendishDentalCare Chesterfield Derbyshire'))
     address_info_list = client.get_address_info(addresses)
+
     for address_info in address_info_list:
-        try:
+
+        if 'result' in address_info:
             print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
             print(address_info['result']['name'] + ' amount of reviews: ' + str(
                 address_info['result']["user_ratings_total"]))
-        except:
-            if 'N/A' in address_info:
-                print("nfrvinfen")
-            else:
-                print("no rating")
+        elif 'results' in address_info:
+            for address in address_info['results']:
+                if 'rating' in address:
+                    print(address['name'] + ' rating: ' + str(address['rating']))
+                    print(address['name'] + ' amount of reviews: ' + str(
+                         address['user_ratings_total']))
+                    break
+
+        elif 'N/A' in address_info:
+            print("nfrvinfen")
+        else:
+            print(address_info)
+            print('no rating')
+
+
+
+
+
+
+
+
+
+
+
+
+                # if len(address_info) > 1:
+                #     print(address_info_list)
+                #     print(address_info[0])
+                #     # print(address_info[0]['result']['name'] + ' rating: ' + str(address_info[0]['result']["rating"]))
+                #     # print(address_info[0]['result']['name'] + ' amount of reviews: ' + str(
+                #     #     address_info[0]['result']["user_ratings_total"]))
+                #     # print(address_info[1]['result']['name'] + ' rating: ' + str(address_info[1]['result']["rating"]))
+                #     # print(address_info[1]['result']['name'] + ' amount of reviews: ' + str(
+                #     #     address_info[1]['result']["user_ratings_total"]))
+                # else:
+                #     continue
