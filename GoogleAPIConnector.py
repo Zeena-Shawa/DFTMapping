@@ -19,15 +19,6 @@ class GoogleAPIHttpClient(object):
         self.url = 'maps.googleapis.com'
         self.path = '/maps/api/place/findplacefromtext/json?'
 
-    def setup_places_autocomplete_api(self):
-        self.url = 'maps.googleapis.com'
-        self.path = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
-
-    def send_autocomplete_dummy_test(self, address):
-        candidates_dict = self.gmaps.places_autocomplete_query(address, 'textquery', fields=["types", "establishment"])
-        print(candidates_dict)
-        return self.gmaps.place(candidates_dict['candidates'][0]['place_id'])
-
     def send_dummy_test(self, address):
         candidates_dict = self.gmaps.find_place(address, 'textquery', fields=None)
         print(candidates_dict)
@@ -37,7 +28,7 @@ class GoogleAPIHttpClient(object):
         # Retrieve addresses in form of UUID
         address_uuid_list = []
         row_split = []
-        row_count = 1
+        row_count = 0
         for address in address_list:
             if address == '':
                 address_uuid_list.append('N/A')
@@ -55,7 +46,8 @@ class GoogleAPIHttpClient(object):
     # TODO merge row_split into one result back
     def find_address_uuid_from_list(self, address_uuid_list, row_split):
         address_list_details = []
-        for row_count in range(0, len(address_uuid_list) - 1):
+        row_count = 0
+        while row_count < len(address_uuid_list):
             print(row_count)
             index_address = address_uuid_list[row_count]
 
@@ -76,6 +68,7 @@ class GoogleAPIHttpClient(object):
                     print(f"Warning, found candidate list with more than 1 result: {index_address}, "
                           f"using first result for row: {row_count}")
                 address_list_details.append(self.find_place(index_address))
+            row_count += 1
 
         return address_list_details
 
