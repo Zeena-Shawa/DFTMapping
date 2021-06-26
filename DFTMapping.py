@@ -29,17 +29,28 @@ if __name__ == "__main__":
     address_info_list = client.get_address_info(addresses)
 
     for address_info in address_info_list:
-
-        if 'result' in address_info:
+        if address_info is None:
+            print('Address is of None Type')
+        elif 'result' in address_info:
             print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
             print(address_info['result']['name'] + ' amount of reviews: ' + str(
                 address_info['result']["user_ratings_total"]))
+            if 'website' in address_info['result']:
+                print(address_info['result']['name'] + ' website: ' + str(address_info['result']['website']))
+            else:
+                continue
         elif 'results' in address_info:
+            print('Yes results')
             for address in address_info['results']:
                 if 'rating' in address:
                     print(address['name'] + ' rating: ' + str(address['rating']))
                     print(address['name'] + ' amount of reviews: ' + str(
                          address['user_ratings_total']))
+                    if 'website' in address:
+                        print(address['name'] + ' website: ' + str(address['website']))
+                    else:
+                        continue
+
                     break
 
         elif 'N/A' in address_info:

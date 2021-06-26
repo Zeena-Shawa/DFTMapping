@@ -80,11 +80,20 @@ class GoogleAPIHttpClient(object):
         return address_list_details
 
     def find_place(self, address):
-        place = self.gmaps.place(address['candidates'][0]['place_id'])
-        if 'business_status' in place['result']:
+        place = self.gmaps.place(address['candidates'][0]['place_id'], fields=['website','name','formatted_address',
+                                                                               'rating','user_ratings_total',
+                                                                               'geometry'])
+        if 'rating' in place['result']:
             return place
         else:
-            test = self.gmaps.places_nearby(location=place['result']['geometry']['location'],
-                                                  radius=100,
-                                                  type='dentist')  # try at
-            return test
+            dentist_info = self.gmaps.places_nearby(location=place['result']['geometry']['location'],
+                                               radius=100,
+                                               type='dentist')  # try at
+            # get correct business details
+            for dentist in dentist_info['results']:
+                if 'rating' in dentist:
+                    updated_place = self.gmaps.place(dentist['place_id'],
+                                             fields=['website', 'name', 'formatted_address',
+                                                     'rating', 'user_ratings_total',
+                                                     'geometry'])
+                    return updated_place
