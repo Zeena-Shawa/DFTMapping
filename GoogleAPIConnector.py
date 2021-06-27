@@ -7,6 +7,7 @@ class GoogleAPIHttpClient(object):
     url = ''
     path = ''
     gmaps = None
+    row_split = []
 
     def __init__(self):
         config = SafeConfigParser()
@@ -31,7 +32,6 @@ class GoogleAPIHttpClient(object):
     def get_address_info(self, address_list):
         # Retrieve addresses in form of UUID
         address_uuid_list = []
-        row_split = []
         row_count = 0
         for address in address_list:
             if address == '':
@@ -39,16 +39,16 @@ class GoogleAPIHttpClient(object):
                 continue
             elif str(address).startswith("#"):
                 addresses_split = str(address).split("&")
-                row_split.append(row_count)
+                self.row_split.append(row_count)
                 for split_address in addresses_split:
                     address_uuid_list.append(self.gmaps.find_place(split_address, 'textquery'))
             else:
                 address_uuid_list.append(self.gmaps.find_place(address, 'textquery'))
             row_count += 1
-        return self.find_address_uuid_from_list(address_uuid_list, row_split)
+        return self.find_address_uuid_from_list(address_uuid_list)
 
     # TODO merge row_split into one result back
-    def find_address_uuid_from_list(self, address_uuid_list, row_split):
+    def find_address_uuid_from_list(self, address_uuid_list):
         address_list_details = []
         row_count = 0
         while row_count < len(address_uuid_list):
@@ -60,12 +60,11 @@ class GoogleAPIHttpClient(object):
             elif len(index_address['candidates']) == 0:
                 print(f"Error, found candidate list with 0 results at row: {row_count}")
                 address_list_details.append("NULL_CANDIDATES")
-            elif row_count in row_split:
+            elif row_count in self.row_split:
                 index_address_plus_one = address_uuid_list[row_count + 1]
                 joint_address_list = [self.find_place(index_address),
                                       self.find_place(index_address_plus_one)]
                 address_list_details.append(joint_address_list)
-                row_split.pop(row_split.index(row_count))  # OwO what is this?
                 row_count += 1
             else:
                 if len(index_address['candidates']) > 1:
@@ -77,32 +76,44 @@ class GoogleAPIHttpClient(object):
         return address_list_details
 
     def find_place(self, address):
-        place = self.gmaps.place(address['candidates'][0]['place_id'], fields=['website','name','formatted_address',
-                                                                               'rating','user_ratings_total',
+        place = self.gmaps.place(address['candidates'][0]['place_id'], fields=['website', 'name', 'formatted_address',
+                                                                               'rating', 'user_ratings_total',
                                                                                'geometry', 'place_id'])
         if 'rating' in place['result']:
             return place
         else:
             dentist_info = self.gmaps.places_nearby(location=place['result']['geometry']['location'],
-                                               radius=100,
-                                               type='dentist')  # try at
+                                                    radius=100,
+                                                    type='dentist')  # try at
             # get correct business details
             for dentist in dentist_info['results']:
                 if 'rating' in dentist:
                     updated_place = self.gmaps.place(dentist['place_id'],
-                                             fields=['website', 'name', 'formatted_address',
-                                                     'rating', 'user_ratings_total',
-                                                     'geometry','place_id'])
+                                                     fields=['website', 'name', 'formatted_address',
+                                                             'rating', 'user_ratings_total',
+                                                             'geometry', 'place_id'])
                     return updated_place
 
     def get_directions_to_London(self, place_ids):
         # Retrieve addresses in form of UUID
         travel_time_list = []
-        row_split = []
-        row_count = 0
-        for place_id in place_ids:
-            # can have more than 1 origin as input, so maybe can scrap for loop
-            travel_time_list.append(self.gmaps.distance_matrix(origins='place_id:' + str(place_id),
-                                                               destinations='Holborn Station, London', mode='transit'))
-            row_count += 1
+        index = 0
+        while index < len(place_ids):
+            if index in self.row_split:
+                distance_from_london_1 = self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index]),
+                                                                    destinations='Holborn Station, London',
+                                                                    mode='transit')
+                distance_from_london_2 = self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index + 1]),
+                                                                    destinations='Holborn Station, London',
+                                                                    mode='transit')
+
+                joint_distance_list = [distance_from_london_1,
+                                       distance_from_london_2]
+                travel_time_list.append(joint_distance_list)
+                index += 1
+            else:
+                travel_time_list.append(self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index]),
+                                                                   destinations='Holborn Station, London',
+                                                                   mode='transit'))
+            index += 1
         return travel_time_list

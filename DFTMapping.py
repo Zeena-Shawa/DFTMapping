@@ -6,77 +6,56 @@
 from DataLoader import CsvDao
 from GoogleAPIConnector import GoogleAPIHttpClient
 
-# def MappingInfo(address, ):
-
-# find nearest_city
-
-# retrieve dist_nearest_city
-
-# retrieve star_rating
-
-# retrieve num_reviews
-
-# retrieve website (what our guess is for the website)
-
-# return nearest_city, dist_nearest_city, star_rating, num_reviews, website
-def print_result(address_info):
-    print(address_info['result']['name'] + ' rating: ' + str(address_info['result']["rating"]))
-    print(address_info['result']['name'] + ' amount of reviews: ' + str(
-        address_info['result']["user_ratings_total"]))
-    if 'website' in address_info['result']:
-        print(address_info['result']['name'] + ' website: ' + str(address_info['result']['website']))
-    return address_info['result']['place_id']
-
 if __name__ == "__main__":
-    data_loader = CsvDao("data\Preferences_2addresses.csv")
+    data_loader = CsvDao()
     addresses = data_loader.get_addresses()
     client = GoogleAPIHttpClient()
     client.setup_places_api()
-    # print(client.send_dummy_test('CavendishDentalCare Chesterfield Derbyshire'))
     address_info_list = client.get_address_info(addresses)
 
     place_ids = []
+    dental_practice_review_info = []
     for address_info in address_info_list:
-        print(address_info)
         if 'result' in address_info:
-            place_id = print_result(address_info)
-            place_ids.append(place_id)
+            dental_practice_review_info.append(','+','.join(data_loader.get_reviews_csv_fornmat(address_info)))
+            place_ids.append(address_info['result']['place_id'])
         # How to deal with double addresses
         elif len(address_info) > 1 and 'result' in address_info[0]:
+            double_address_reviews = []
             for address in address_info:
-                place_id = print_result(address)
-                place_ids.append(place_id)
+                double_address_reviews.append(data_loader.get_reviews_csv_fornmat(address))
+                place_ids.append(address['result']['place_id'])
+
+            csv_format_address_reviews = ''
+            for column_value_index in range(len(data_loader.get_reviews_csv_fornmat(address_info[0]))):
+
+                csv_format_address_reviews += ','+'\"' + double_address_reviews[0][column_value_index] \
+                                              + ',' + double_address_reviews[1][column_value_index] + '\"'
+
+            dental_practice_review_info.append(csv_format_address_reviews)
         elif 'N/A' in address_info:
             print("nfrvinfen")
         else:
-            print(address_info)
+            dental_practice_review_info.append(','+','.join(data_loader.get_reviews_csv_fornmat(address_info)))
             place_ids.append(address_info['result']['place_id'])
-            print('no rating')
 
     client.setup_directions_matrix_api()
     travel_times_London = client.get_directions_to_London(place_ids)
-    print(travel_times_London)
-    for travel_time in travel_times_London:
-        elements = travel_time['rows']
-        for element in elements:
-            print('Travel time to London:' + str(element['elements'][0]['duration']['text']))
+    london_distance_list = []
+    for distance_object in travel_times_London:
+        distance_to_london = ''
+        if isinstance(distance_object, list):
+            distance_to_london += ',\"'
+            distance_to_london_list = []
+            for element in distance_object:
+                elements = element['rows']
+                distance_to_london_list.append(str(elements[0]['elements'][0]['duration']['text']))
+            distance_to_london += ','.join(distance_to_london_list)
+            distance_to_london += '\"'
+        else:
+            elements = distance_object['rows']
+            distance_to_london += ','+str(elements[0]['elements'][0]['duration']['text'])
 
+        london_distance_list.append(distance_to_london)
 
-
-
-
-
-
-
-
-                # if len(address_info) > 1:
-                #     print(address_info_list)
-                #     print(address_info[0])
-                #     # print(address_info[0]['result']['name'] + ' rating: ' + str(address_info[0]['result']["rating"]))
-                #     # print(address_info[0]['result']['name'] + ' amount of reviews: ' + str(
-                #     #     address_info[0]['result']["user_ratings_total"]))
-                #     # print(address_info[1]['result']['name'] + ' rating: ' + str(address_info[1]['result']["rating"]))
-                #     # print(address_info[1]['result']['name'] + ' amount of reviews: ' + str(
-                #     #     address_info[1]['result']["user_ratings_total"]))
-                # else:
-                #     continue
+    data_loader.write_addresses_to_file(dental_practice_review_info, london_distance_list)
