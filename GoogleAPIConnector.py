@@ -19,6 +19,10 @@ class GoogleAPIHttpClient(object):
         self.url = 'maps.googleapis.com'
         self.path = '/maps/api/place/findplacefromtext/json?'
 
+    def setup_directions_matrix_api(self):
+        self.url = 'maps.googleapis.com'
+        self.path = '/maps/api/place/distancematrix/json?'
+
     def send_dummy_test(self, address):
         candidates_dict = self.gmaps.find_place(address, 'textquery', fields=None)
         print(candidates_dict)
@@ -75,7 +79,7 @@ class GoogleAPIHttpClient(object):
     def find_place(self, address):
         place = self.gmaps.place(address['candidates'][0]['place_id'], fields=['website','name','formatted_address',
                                                                                'rating','user_ratings_total',
-                                                                               'geometry'])
+                                                                               'geometry', 'place_id'])
         if 'rating' in place['result']:
             return place
         else:
@@ -88,5 +92,17 @@ class GoogleAPIHttpClient(object):
                     updated_place = self.gmaps.place(dentist['place_id'],
                                              fields=['website', 'name', 'formatted_address',
                                                      'rating', 'user_ratings_total',
-                                                     'geometry'])
+                                                     'geometry','place_id'])
                     return updated_place
+
+    def get_directions_to_London(self, place_ids):
+        # Retrieve addresses in form of UUID
+        travel_time_list = []
+        row_split = []
+        row_count = 0
+        for place_id in place_ids:
+            # can have more than 1 origin as input, so maybe can scrap for loop
+            travel_time_list.append(self.gmaps.distance_matrix(origins='place_id:' + str(place_id),
+                                                               destinations='Holborn Station, London', mode='transit'))
+            row_count += 1
+        return travel_time_list
