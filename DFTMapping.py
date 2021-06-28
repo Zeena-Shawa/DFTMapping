@@ -9,6 +9,7 @@ from GoogleAPIConnector import GoogleAPIHttpClient
 if __name__ == "__main__":
     data_loader = CsvDao()
     addresses = data_loader.get_addresses()
+    print(addresses)
     client = GoogleAPIHttpClient()
     client.setup_places_api()
     address_info_list = client.get_address_info(addresses)
@@ -16,6 +17,7 @@ if __name__ == "__main__":
     place_ids = []
     dental_practice_review_info = []
     for address_info in address_info_list:
+        print(address_info)
         if 'result' in address_info:
             dental_practice_review_info.append(','+','.join(data_loader.get_reviews_csv_fornmat(address_info)))
             place_ids.append(address_info['result']['place_id'])
@@ -34,6 +36,8 @@ if __name__ == "__main__":
 
             dental_practice_review_info.append(csv_format_address_reviews)
         elif 'N/A' in address_info:
+            csv_format_address_reviews = ', , ,'
+            dental_practice_review_info.append(csv_format_address_reviews)
             print("nfrvinfen")
         else:
             dental_practice_review_info.append(','+','.join(data_loader.get_reviews_csv_fornmat(address_info)))
@@ -53,7 +57,9 @@ if __name__ == "__main__":
             distance_to_london += ','.join(distance_to_london_list)
             distance_to_london += '\"'
         else:
+            print(distance_object)
             elements = distance_object['rows']
+            print(elements)
             distance_to_london += ','+str(elements[0]['elements'][0]['duration']['text'])
 
         london_distance_list.append(distance_to_london)

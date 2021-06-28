@@ -10,9 +10,13 @@ def transform_addresses(addresses):
     # Messy, inconsistent data rows
     for address in addresses:
         # link in address
+        # clean_address_string_list.append()
         if 'https://' in address:
             address_truncated = re.sub('\\shttps.*$', '', address)
-            clean_address_string_list.append(address_truncated.split(":", 1)[1].strip().rstrip('.'))
+            if ':' in address_truncated:
+                clean_address_string_list.append(address_truncated.split(":", 1)[1].strip().rstrip('.'))
+            elif '-' in address_truncated:
+                clean_address_string_list.append(address_truncated.split("-", 1)[1].strip().rstrip('.'))
         # 2 postcodes
         elif len(re.findall(postcode_pattern, address)) > 1:
             handle_double_postcode_addresses(address)

@@ -78,7 +78,7 @@ class GoogleAPIHttpClient(object):
     def find_place(self, address):
         place = self.gmaps.place(address['candidates'][0]['place_id'], fields=['website', 'name', 'formatted_address',
                                                                                'rating', 'user_ratings_total',
-                                                                               'geometry', 'place_id'])
+                                                                               'geometry', 'place_id', 'url'])
         if 'rating' in place['result']:
             return place
         else:
@@ -91,7 +91,7 @@ class GoogleAPIHttpClient(object):
                     updated_place = self.gmaps.place(dentist['place_id'],
                                                      fields=['website', 'name', 'formatted_address',
                                                              'rating', 'user_ratings_total',
-                                                             'geometry', 'place_id'])
+                                                             'geometry', 'place_id', 'url'])
                     return updated_place
 
     def get_directions_to_London(self, place_ids):
@@ -102,10 +102,12 @@ class GoogleAPIHttpClient(object):
             if index in self.row_split:
                 distance_from_london_1 = self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index]),
                                                                     destinations='Holborn Station, London',
-                                                                    mode='transit')
+                                                                    mode='transit',
+                                                                    departure_time=1624892437)
                 distance_from_london_2 = self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index + 1]),
                                                                     destinations='Holborn Station, London',
-                                                                    mode='transit')
+                                                                    mode='transit',
+                                                                    departure_time=1624892437)
 
                 joint_distance_list = [distance_from_london_1,
                                        distance_from_london_2]
@@ -114,6 +116,6 @@ class GoogleAPIHttpClient(object):
             else:
                 travel_time_list.append(self.gmaps.distance_matrix(origins='place_id:' + str(place_ids[index]),
                                                                    destinations='Holborn Station, London',
-                                                                   mode='transit'))
+                                                                   mode='transit', departure_time=1624892437))
             index += 1
         return travel_time_list
