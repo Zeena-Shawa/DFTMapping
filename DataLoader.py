@@ -13,7 +13,7 @@ class CsvDao(object):
     file = None
     ADDRESS_CSV_COLUMN = 10
 
-    def __init__(self, file="data\Preferences_ThamesValley.csv"):
+    def __init__(self, file="data\Preferences_Wales.csv"):
         self.file = file
 
     def load_data(self, filename):
@@ -22,7 +22,7 @@ class CsvDao(object):
 
     # Both lists are ordered to csv
     def write_addresses_to_file(self, address_list, london_distance_list):
-        with open(self.file, 'r') as read_file, open('data\Preferences_ThamesValley_full.csv', 'w') as write_file:
+        with open(self.file, 'r') as read_file, open('data\Preferences_Wales_full.csv', 'w') as write_file:
             first_line = read_file.readline()
             write_file.write(first_line.strip('\n') + ',' + ','.join(extra_column_headers) + '\n')
             # read content from first file
